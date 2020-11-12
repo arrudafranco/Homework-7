@@ -1,0 +1,23 @@
+---
+title: "Predicting Attitudes Towards Racist College Professors"
+author: "Your name"
+date: "`r lubridate::today()`"
+output: github_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+## Load necessary libraries
+
+```{r packages}
+library(tidyverse)
+library(rcfss)
+```
+
+## Session info
+
+```{r}
+devtools::session_info()
+```
