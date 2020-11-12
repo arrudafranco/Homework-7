@@ -5,10 +5,6 @@ date: "`r lubridate::today()`"
 output: github_document
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(cache = TRUE)
-```
-
 ## Load necessary libraries
 
 ```{r}
