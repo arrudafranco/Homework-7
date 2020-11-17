@@ -1,6 +1,6 @@
 ---
 title: "Predicting Attitudes Towards Racist College Professors"
-author: "Your name"
+author: "Gustavo Arruda"
 date: "`r lubridate::today()`"
 output: github_document
 ---
@@ -10,7 +10,52 @@ output: github_document
 ```{r packages}
 library(tidyverse)
 library(rcfss)
+library(randomForest)
+library(knitr)
+library(caret)
+library(partykit)
+
+theme_set(theme_minimal())
+
+set.seed(1234)
 ```
+
+```{r}
+gss_colrac <- gss_colrac
+
+gss_colrac_transformed <- gss_colrac %>%
+  mutate(colrac = if_else(colrac == FALSE, "NO",
+                           if_else(colrac == TRUE, "YES", NA_character_))) %>%
+  mutate_if(is.character, as.factor)
+
+train_control <- trainControl(method = "oob")
+
+# Train the model
+step_model_back <- train(colrac ~., data = gss_colrac_transformed,
+                    method = "rf", 
+                    ntree = 200,
+                    trControl = train_control,
+                    na.action = na.omit
+                    )
+
+kable(step_model_back$finalModel$confusion)
+step_model_back$finalModel
+varImpPlot(step_model_back$finalModel)
+
+#The chart shows that 'tolerance', 'age', 'egalit_scale', 'wordsum' and 'authoritarianism' are the most important predicting variables.
+
+colrac_selected <- ctree(colrac ~ tolerance + age + egalit_scale + wordsum + authoritarianism, data = gss_colrac_transformed)
+
+plot(colrac_selected,
+     ip_args = list(
+       pval = TRUE,
+       id = FALSE),
+     tp_args = list(
+       id = FALSE)
+)
+
+```
+
 
 ## Session info
 
