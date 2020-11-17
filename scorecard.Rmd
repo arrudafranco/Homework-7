@@ -10,6 +10,13 @@ output: github_document
 ```{r}
 library(tidyverse)
 library(rcfss)
+library(leaps)
+library(caret)
+library(ggplot2)
+library(knitr)
+library(broom)
+
+set.seed(144)
 ```
 
 ```{r}
@@ -19,7 +26,32 @@ ggplot(scorecard, aes(cost, debt)) +
   geom_point() +
   geom_smooth(method = "lm")
 
-scorecard_num <- select(scorecard, is.numeric)
+scorecard_num <- select(scorecard, admrate:debt)
+
+# Source of help:
+#http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/154-stepwise-regression-essentials-in-r/
+# Set up repeated k-fold cross-validation
+train_control <- trainControl(method = "cv", number = 10)
+# Train the model
+step_model_back <- train(debt ~., data = scorecard_num,
+                    method = "leapBackward", 
+                    tuneGrid = data.frame(nvmax = 1:7),
+                    trControl = train_control,
+                    na.action = na.omit
+                    )
+#step.model.back$bestTune
+ggplot(step_model_back) +
+  labs(y = "Root Mean Squared Error (Cross-Validation)")
+summary(step_model_back$finalModel)
+scorecard_model <- lm(debt ~ admrate + satavg + cost + comprate + firstgen, data = scorecard) %>%
+  tidy()
+
+
+```
+```{r}
+
+
+
 
 ```
 
