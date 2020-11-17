@@ -1,6 +1,6 @@
 ---
 title: "Predicting student debt load"
-author: "Your name"
+author: "Gustavo Arruda"
 date: "`r lubridate::today()`"
 output: github_document
 ---
@@ -12,6 +12,16 @@ library(tidyverse)
 library(rcfss)
 ```
 
+```{r}
+
+scorecard <- data.frame(scorecard)
+ggplot(scorecard, aes(cost, debt)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+scorecard_num <- select(scorecard, is.numeric)
+
+```
 
 ## Session info
 
