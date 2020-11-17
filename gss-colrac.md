@@ -7,74 +7,12 @@ Gustavo Arruda
 
 ``` r
 library(tidyverse)
-```
-
-    ## -- Attaching packages ---------------------------------------------------------------------------- tidyverse 1.3.0 --
-
-    ## v ggplot2 3.3.2     v purrr   0.3.4
-    ## v tibble  3.0.3     v dplyr   1.0.2
-    ## v tidyr   1.1.2     v stringr 1.4.0
-    ## v readr   1.3.1     v forcats 0.5.0
-
-    ## -- Conflicts ------------------------------------------------------------------------------- tidyverse_conflicts() --
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-``` r
 library(rcfss)
 library(randomForest)
-```
-
-    ## Warning: package 'randomForest' was built under R version 4.0.3
-
-    ## randomForest 4.6-14
-
-    ## Type rfNews() to see new features/changes/bug fixes.
-
-    ## 
-    ## Attaching package: 'randomForest'
-
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     combine
-
-    ## The following object is masked from 'package:ggplot2':
-    ## 
-    ##     margin
-
-``` r
 library(knitr)
 library(caret)
-```
-
-    ## Warning: package 'caret' was built under R version 4.0.3
-
-    ## Loading required package: lattice
-
-    ## 
-    ## Attaching package: 'caret'
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     lift
-
-``` r
 library(partykit)
-```
 
-    ## Warning: package 'partykit' was built under R version 4.0.3
-
-    ## Loading required package: grid
-
-    ## Loading required package: libcoin
-
-    ## Warning: package 'libcoin' was built under R version 4.0.3
-
-    ## Loading required package: mvtnorm
-
-    ## Warning: package 'mvtnorm' was built under R version 4.0.3
-
-``` r
 theme_set(theme_minimal())
 
 set.seed(1234)
@@ -91,23 +29,14 @@ gss_colrac_transformed <- gss_colrac %>%
 train_control <- trainControl(method = "oob")
 
 # Train the model
-step_model_back <- train(colrac ~., data = gss_colrac_transformed,
+random_forest_model <- train(colrac ~., data = gss_colrac_transformed,
                     method = "rf", 
                     ntree = 200,
                     trControl = train_control,
                     na.action = na.omit
                     )
 
-kable(step_model_back$finalModel$confusion)
-```
-
-|     |  NO | YES | class.error |
-| :-- | --: | --: | ----------: |
-| NO  | 850 | 156 |   0.1550696 |
-| YES | 309 | 659 |   0.3192149 |
-
-``` r
-step_model_back$finalModel
+random_forest_model$finalModel
 ```
 
     ## 
@@ -124,14 +53,12 @@ step_model_back$finalModel
     ## YES 309 659   0.3192149
 
 ``` r
-varImpPlot(step_model_back$finalModel)
+varImpPlot(random_forest_model$finalModel)
 ```
 
 ![](gss-colrac_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
 ``` r
-#The chart shows that 'tolerance', 'age', 'egalit_scale', 'wordsum' and 'authoritarianism' are the most important predicting variables.
-
 colrac_selected <- ctree(colrac ~ tolerance + age + egalit_scale + wordsum + authoritarianism, data = gss_colrac_transformed)
 
 plot(colrac_selected,
@@ -144,6 +71,13 @@ plot(colrac_selected,
 ```
 
 ![](gss-colrac_files/figure-gfm/unnamed-chunk-1-2.png)<!-- -->
+
+I choose a random forest algorithm to build this model. Such algorithm
+iteratively select the best variables to construct a forest tree model,
+which does a good work to elicit relationships between categorical
+variables in a data set. The random\_forest\_model$finalModel chart
+shows that ‘tolerance’, ‘age’, ‘egalit\_scale’, ‘wordsum’ and
+‘authoritarianism’ are the most important predicting variables.
 
 ## Session info
 
@@ -198,7 +132,6 @@ devtools::session_info()
     ##  gower          0.2.2      2020-06-23 [1] CRAN (R 4.0.3)                
     ##  gtable         0.3.0      2019-03-25 [1] CRAN (R 4.0.2)                
     ##  haven          2.3.1      2020-06-01 [1] CRAN (R 4.0.2)                
-    ##  highr          0.8        2019-03-20 [1] CRAN (R 4.0.2)                
     ##  hms            0.5.3      2020-01-08 [1] CRAN (R 4.0.2)                
     ##  htmltools      0.5.0      2020-06-16 [1] CRAN (R 4.0.2)                
     ##  httr           1.4.2      2020-07-20 [1] CRAN (R 4.0.2)                

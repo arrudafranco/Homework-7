@@ -5,6 +5,10 @@ date: "`r lubridate::today()`"
 output: github_document
 ---
 
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
 ## Load necessary libraries
 
 ```{r packages}
@@ -31,18 +35,15 @@ gss_colrac_transformed <- gss_colrac %>%
 train_control <- trainControl(method = "oob")
 
 # Train the model
-step_model_back <- train(colrac ~., data = gss_colrac_transformed,
+random_forest_model <- train(colrac ~., data = gss_colrac_transformed,
                     method = "rf", 
                     ntree = 200,
                     trControl = train_control,
                     na.action = na.omit
                     )
 
-kable(step_model_back$finalModel$confusion)
-step_model_back$finalModel
-varImpPlot(step_model_back$finalModel)
-
-#The chart shows that 'tolerance', 'age', 'egalit_scale', 'wordsum' and 'authoritarianism' are the most important predicting variables.
+random_forest_model$finalModel
+varImpPlot(random_forest_model$finalModel)
 
 colrac_selected <- ctree(colrac ~ tolerance + age + egalit_scale + wordsum + authoritarianism, data = gss_colrac_transformed)
 
@@ -55,6 +56,8 @@ plot(colrac_selected,
 )
 
 ```
+
+I choose a random forest algorithm to build this model. Such algorithm iteratively select the best variables to construct a forest tree model, which does a good work to elicit relationships between categorical variables in a data set. The random_forest_model$finalModel chart shows that 'tolerance', 'age', 'egalit_scale', 'wordsum' and 'authoritarianism' are the most important predicting variables.
 
 
 ## Session info

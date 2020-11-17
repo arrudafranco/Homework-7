@@ -7,65 +7,30 @@ Gustavo Arruda
 
 ``` r
 library(tidyverse)
-```
-
-    ## -- Attaching packages ---------------------------------------------------------------------------- tidyverse 1.3.0 --
-
-    ## v ggplot2 3.3.2     v purrr   0.3.4
-    ## v tibble  3.0.3     v dplyr   1.0.2
-    ## v tidyr   1.1.2     v stringr 1.4.0
-    ## v readr   1.3.1     v forcats 0.5.0
-
-    ## -- Conflicts ------------------------------------------------------------------------------- tidyverse_conflicts() --
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-``` r
 library(rcfss)
 library(leaps)
-```
-
-    ## Warning: package 'leaps' was built under R version 4.0.3
-
-``` r
 library(caret)
-```
-
-    ## Warning: package 'caret' was built under R version 4.0.3
-
-    ## Loading required package: lattice
-
-    ## 
-    ## Attaching package: 'caret'
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     lift
-
-``` r
 library(ggplot2)
 library(knitr)
 library(broom)
 set.seed(1234)
 ```
 
+## Single Variable Model
+
 ``` r
-scorecard <- data.frame(scorecard)
 ggplot(scorecard, aes(cost, debt)) +
   geom_point() +
   geom_smooth(method = "lm")
 ```
 
-    ## `geom_smooth()` using formula 'y ~ x'
-
-    ## Warning: Removed 113 rows containing non-finite values (stat_smooth).
-
-    ## Warning: Removed 113 rows containing missing values (geom_point).
-
 ![](scorecard_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+
+## Multiple Variables Model
 
 ``` r
 scorecard_num <- select(scorecard, admrate:debt)
+#Limiting the model to numerical variables.
 
 # Source of help:
 #http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/154-stepwise-regression-essentials-in-r/
@@ -74,21 +39,21 @@ scorecard_num <- select(scorecard, admrate:debt)
 train_control <- trainControl(method = "cv", number = 10)
 
 # Train the model
-step_model_back <- train(debt ~., data = scorecard_num,
+back_selection <- train(debt ~., data = scorecard_num,
                     method = "leapBackward", 
                     tuneGrid = data.frame(nvmax = 1:7),
                     trControl = train_control,
                     na.action = na.omit
                     )
 
-ggplot(step_model_back) +
+ggplot(back_selection) +
   labs(y = "Root Mean Squared Error (Cross-Validation)")
 ```
 
-![](scorecard_files/figure-gfm/unnamed-chunk-2-2.png)<!-- -->
+![](scorecard_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 ``` r
-summary(step_model_back$finalModel)
+summary(back_selection$finalModel)
 ```
 
     ## Subset selection object
@@ -124,6 +89,42 @@ kable(scorecard_model)
 | cost        |   1.225681e-01 |    0.0084482 |   14.508133 |   0e+00 |
 | comprate    |   1.106673e+04 | 1003.2377916 |   11.031015 |   0e+00 |
 | firstgen    | \-1.327550e+04 | 1433.0682752 |  \-9.263691 |   0e+00 |
+
+I used a backward variable selection algorithm to decide which variables
+to use in my multivariate linear model. In those kinds of algorithms we
+start using all variables, then iteratively test models by removing each
+variable at a time until the change is statistically significant. The
+issue with variable selection algorithms is that models might get
+overfitted to the training data set and perform significantly worse with
+subsequent testing data. To avoid overfitting I used a k-fold
+cross-validation algorithm. That method iteratively trains models with a
+random fraction of the data then tests them with the remaining data.
+
+The RMSE \~ Maximum Number of Predictors chart shows that the models
+with the least error given my parameters were the ones with 5 predictor
+variables. Under further examination, the model indicates that the best
+predictor variables are admrate, satavg, cost, comprate and firstgen. I
+included a table calculating their coefficients and standard error.
+
+The best predicting variable does seem to be cost followed by satavg,
+with relatively much lower standard errors. The costlier the cost of
+attendance, the highest the median student debt, which is somewhat
+self-explanatory. The average SAT admission score coefficient is more
+puzzling to me. The highest the SAT score, the lowest the student debt.
+My hunch here is that there is a confounding variable: the average
+social standing of the student body directly influences their ability to
+prepare for the SATs. Hence, a higher average SAT score would mean less
+need to take on debt. Following those in the order of increasing
+standard error, admissions rates have a comparatively higher positive
+coefficient with student debt. In this case, for profit colleges come to
+mind: the easiest it is to get into a college, the larger the
+probability of that given college being for profit which would lead to
+higher student debt. Subsequentially, completion rates have a positive
+coefficient and proportion of first generation student body have a
+negative coefficient with student debt, although they both have much
+higher standard error. Again, lower proportion of first generation
+students might have the confounding variable of average social standing
+of the student body with median student debt.
 
 ## Session info
 
